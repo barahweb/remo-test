@@ -45,11 +45,6 @@ class PostController extends Controller
     public function storeComments(Request $request, $id) 
     {
 
-        // return response()->json([
-        //     'data' => $request->comments,
-        //     'id' => $id
-        // ]);
-
         try {
         $validation = Validator::make($request->all(), [
             'comments' => 'required',
