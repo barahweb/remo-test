@@ -11,17 +11,21 @@ class PostService
 {
     public function getLatestPosts(): Collection
     {
-        return Cache::remember('feed:latest', 60, fn () => Post::take(10)->get());
+        return Cache::remember('feed:latest', 60, fn () => Post::with('author')->take(10)->get());
     }
 
     public function createPost(array $data): Post
     {
-        return Post::create($data);
+        $post = Post::create($data);
+        Cache::forget('feed:latest');
+
+        return $post;
     }
 
     public function updatePost(Post $post, array $data): Post
     {
         $post->update($data);
+        Cache::forget('feed:latest');
 
         return $post;
     }
@@ -29,6 +33,7 @@ class PostService
     public function deletePost(Post $post): void
     {
         $post->delete();
+        Cache::forget('feed:latest');
     }
 
     public function storeComment(Post $post, string $comment): Comments
