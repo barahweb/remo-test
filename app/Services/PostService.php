@@ -17,7 +17,7 @@ class PostService
     public function createPost(array $data): Post
     {
         $post = Post::create($data);
-        Cache::forget('feed:latest');
+        Cache::forget('feed:latest'); // invalidate so the index doesn't serve stale data after a write
 
         return $post;
     }
@@ -25,7 +25,7 @@ class PostService
     public function updatePost(Post $post, array $data): Post
     {
         $post->update($data);
-        Cache::forget('feed:latest');
+        Cache::forget('feed:latest'); // invalidate so the index doesn't serve stale data after a write
 
         return $post;
     }
@@ -33,7 +33,7 @@ class PostService
     public function deletePost(Post $post): void
     {
         $post->delete();
-        Cache::forget('feed:latest');
+        Cache::forget('feed:latest'); // invalidate so the index doesn't serve stale data after a write
     }
 
     public function storeComment(Post $post, string $comment): Comments
