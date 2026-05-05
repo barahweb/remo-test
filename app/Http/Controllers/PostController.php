@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Comments;
 use App\Models\Post;
+use App\Services\PostService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Cache;
 
 class PostController extends Controller
 {
+    public function __construct(private PostService $postService) {}
+
     public function index()
     {
-        $posts = Cache::remember('feed:latest', 60, fn () => Post::take(10)->get());
+        $posts = $this->postService->getLatestPosts();
 
         return response()->json([
             'data'  => $posts,
@@ -27,7 +28,7 @@ class PostController extends Controller
             'content' => 'required',
         ]);
 
-        $post = Post::create($validated);
+        $post = $this->postService->createPost($validated);
 
         return response()->json([
             'data'    => $post,
@@ -35,18 +36,37 @@ class PostController extends Controller
         ], Response::HTTP_CREATED);
     }
 
-    public function storeComments(Request $request, $id)
+    public function update(Request $request, Post $post)
+    {
+        $validated = $request->validate([
+            'title'   => 'sometimes|required',
+            'content' => 'sometimes|required',
+        ]);
+
+        $post = $this->postService->updatePost($post, $validated);
+
+        return response()->json([
+            'data'    => $post,
+            'message' => 'Successfully updated the post!',
+        ]);
+    }
+
+    public function destroy(Post $post)
+    {
+        $this->postService->deletePost($post);
+
+        return response()->json([
+            'message' => 'Successfully deleted the post!',
+        ]);
+    }
+
+    public function storeComments(Request $request, Post $post)
     {
         $validated = $request->validate([
             'comments' => 'required',
         ]);
 
-        $post = Post::findOrFail($id);
-
-        $comment = Comments::create([
-            'comments' => $validated['comments'],
-            'post_id'  => $post->id,
-        ]);
+        $comment = $this->postService->storeComment($post, $validated['comments']);
 
         return response()->json([
             'data'    => $comment,
