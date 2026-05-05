@@ -24,8 +24,9 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title'   => 'required',
-            'content' => 'required',
+            'title'     => 'required',
+            'content'   => 'required',
+            'author_id' => 'nullable|exists:authors,id',
         ]);
 
         $post = $this->postService->createPost($validated);
@@ -39,8 +40,9 @@ class PostController extends Controller
     public function update(Request $request, Post $post)
     {
         $validated = $request->validate([
-            'title'   => 'sometimes|required',
-            'content' => 'sometimes|required',
+            'title'     => 'sometimes|required',
+            'content'   => 'sometimes|required',
+            'author_id' => 'sometimes|nullable|exists:authors,id',
         ]);
 
         $post = $this->postService->updatePost($post, $validated);
@@ -55,9 +57,7 @@ class PostController extends Controller
     {
         $this->postService->deletePost($post);
 
-        return response()->json([
-            'message' => 'Successfully deleted the post!',
-        ]);
+        return response()->noContent();
     }
 
     public function storeComments(Request $request, Post $post)
